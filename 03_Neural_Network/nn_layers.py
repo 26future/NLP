@@ -1,69 +1,76 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# ## Repeat Node
+# # Repeat 노드
 
-# In[7]:
+# In[9]:
 
 
 import numpy as np
 
-# 순전파
+# # 순전파
 
 # D = 8
 # N = 7
 # x = np.random.rand(1,D)  # (1,8)
 # # x = np.random.rand(D,).reshape(1,-1)  # (1,8)
-# print(x, x.shape)
+# print(x,x.shape)
 # print('-'*70)
 
 # y = np.repeat(x,N,axis=0)  # 수직(행) 방향, axis=0
-# print(y, y.shape)
+# print(y,y.shape)   # (7, 8)
 
 
-# In[11]:
+# # In[15]:
 
 
-# 역전파 : sum
+# # 역전파 : sum
 # dy = np.random.rand(N,D)
-# print(dy, dy.shape)  # (7, 8)
+# print(dy,dy.shape)  # (7, 8)
 # print('-'*70)
-# dx = np.sum(dy,axis=0,keepdims=True)  # 수직 방향 합, keepdims=True이면 2차원, Flase이면 1차원
-# print(dx, dx.shape)  # (1, 8)
+# dx = np.sum(dy,axis=0,keepdims=True)  # 수직방향 합, keepdims=True이면 2차원, False이면 1차원
+# print(dx,dx.shape)  # (1,8)
 
 
-# ## Sum Node
-
-# In[15]:
+# # In[18]:
 
 
-# 순전파
+# a = np.array([[1,2,3,4]])
+# np.sum(a, keepdims=True) # 2차원 유지
+
+
+# # ### Sum 노드
+
+# # In[22]:
+
+
+# # 순전파
 
 # D,N = 8,7
-# x = np.random.rand(N,D)
-# print(x, x.shape)  # (7, 8)
+# x = np.random.rand(N,D) 
+# print(x,x.shape)  # (7,8)
 # print('-'*70)
 
-# y = np.sum(x,axis=0,keepdims=True)  # 수직 방향 합, keepdims=True이면 2차원, Flase이면 1차원
-# print(y, y.shape)  # (1, 8)
+# y = np.sum(x,axis=0,keepdims=True)  # 수직방향 합, keepdims=True이면 2차원, False이면 1차원
+# print(y,y.shape)
 
 
-# In[18]:
+# # In[23]:
 
 
-# 역전파
+# # 역전파
 
 # dy = np.random.rand(1,D)  # (1,8)
-# print(dy, dy.shape)
+# print(dy,dy.shape)
 # print('-'*70)
 
 # dx = np.repeat(dy,N,axis=0)  # 수직(행) 방향, axis=0
-# print(dx, dx.shape)
+# print(dx,dx.shape)   # (7, 8)
 
 
-# ## MatMul Node
+# ### MatMul 노드
 
-# In[19]:
+# In[24]:
 
 
 class MatMul:
@@ -82,11 +89,11 @@ class MatMul:
         W = self.params
         dx = np.dot(dout,W.T)
         dw = np.dot(self.x.T,dout)
-        self.grads[0][...] = dw  # 깊은 복사
+        self.grads[0][...] = dw  # 깊은복사
         return dx
 
 
-# In[20]:
+# In[27]:
 
 
 # a = np.array([1, 2, 3])
@@ -98,7 +105,7 @@ class MatMul:
 # id(a) == id(b)
 
 
-# In[21]:
+# In[28]:
 
 
 # a = np.array([1, 2, 3])
@@ -109,18 +116,18 @@ class MatMul:
 # id(a) == id(b)
 
 
-# In[22]:
+# In[31]:
 
 
-# np.zeros_like
+# # np.zeros_like
 # a = np.arange(12).reshape(3,4)
 # b = np.zeros_like(a)
 # b
 
 
-# ## Sigmoid 계층
+# ### 시그모이드 계층
 
-# In[24]:
+# In[32]:
 
 
 class Sigmoid:
@@ -129,28 +136,28 @@ class Sigmoid:
         self.out = None
         
     def forward(self,x):
-        out = 1/(1+np.exp(-x))
+        out = 1 / (1 + np.exp(-x))
         self.out = out
         return out
     
     def backward(self,dout):
-        dx = dout*self.out*(1-self.out)
-        return dx
+        dx = dout*self.out*(1 - self.out)  # 공식 도출은 참고서적 참조
+        return dx        
 
 
-# ## Affine 계층 : MatMul 노드에 bias를 더한 계층,  X*W + b
+# ### Affine 계층 : MatMul 노드에 bias를 더한 계층,  X*W + b
 
-# In[ ]:
+# In[33]:
 
 
 class Affine:
-    def __init__(self,W):
+    def __init__(self,W,b):
         self.params = [W,b]
-        self.grads = [np.zeros_like(W), np.zeros_like(b)]
+        self.grads = [np.zeros_like(W),np.zeros_like(b)]
         self.x = None
         
     def forward(self,x):
-        W, b = self.params
+        W , b = self.params
         out = np.dot(x,W) + b
         self.x = x
         return out
@@ -161,35 +168,35 @@ class Affine:
         dw = np.dot(self.x.T,dout)
         db = np.sum(dout,axis=0)
         
-        self.grads[0][...] = dw  # deep copy
-        self.grads[1][...] = db
+        self.grads[0][...] = dw  # 깊은복사
+        self.grads[1][...] = db  # 깊은복사
         
-        return dx
+        return dx    
 
 
 # ## Softmax with Loss 계층
 
-# In[28]:
+# In[35]:
 
 
 class SoftmaxWithLoss:
     def __init__(self):
-        self.params, self.grads = [],[]
+        self.params,self.grads=[],[]
         self.y = None  # softmax의 출력값
         self.t = None  # 정답 레이블
         
     def softmax(self,x):
         if x.ndim == 2:
-            x = x-x.max(axis=1, keepdims=True)  # nan출력을 방지
+            x = x - x.max(axis=1, keepdims=True)  # nan출력을 방지
             x = np.exp(x)
-            x /= x.sum(axis=1, keepdims=True)
-        elif x.dim == 1:
-            x = x-np.max(x)
-            x = np.exp(x)/np.sum(np.exp(x))
-        return x
+            x /= x.sum(axis=1,keepdims=True)
+        elif x.ndim == 1:
+            x = x - np.max(x)
+            x = np.exp(x) / np.sum(np.exp(x))
+        return x  
     
-# https://smile2x.tistory.com/entry/softmax-crossentropy-%EC%97%90-%EB%8C%80%ED%95%98%EC%97%AC 
-    def cross_entropy_error(self,y,t):  
+    # https://smile2x.tistory.com/entry/softmax-crossentropy-%EC%97%90-%EB%8C%80%ED%95%98%EC%97%AC 
+    def cross_entropy_error(self,y, t):  
         if y.ndim == 1:
             t = t.reshape(1, t.size)
             y = y.reshape(1, y.size)
@@ -201,34 +208,36 @@ class SoftmaxWithLoss:
         batch_size = y.shape[0]
 
         return -np.sum(np.log(y[np.arange(batch_size), t] + 1e-7)) / batch_size  # 1e-7은 log(0)으로 무한대가 나오는걸 방지
-
-    def forward(self,x,t):
+          
+    
+    def forward(self, x, t):
         self.t = t
         self.y = self.softmax(x)
-        
-        # 정답 데이터가 원핫 벡터일 경우 정답 레이블 인덱스로 변환
-        if t.size == y.size:
-            t = t.argmax(axis=1)
-        
-        loss = self.cross_entropy_error(self.y, self.t)
+
+        # 정답 레이블이 원핫 벡터일 경우 정답의 인덱스로 변환
+        if self.t.size == self.y.size:
+            self.t = self.t.argmax(axis=1)
+       
+        loss = self.cross_entropy_error(self.y,self.t)
         return loss
     
     def backward(self,dout=1):
         batch_size = self.t.shape[0]
         
-        # dx = (self.y-self.t)/batch_size  # 순수 Softmax 계층일 경우
+        # dx = (self.y - self.t)/batch_size  # 순수 Softmax계층 일경우
         dx = self.y.copy()
         dx[np.arange(batch_size), self.t] -= 1
         dx *= dout
         dx = dx / batch_size
-
-        return dx
-
-
-# In[26]:
+        
+        return dx       
+        
 
 
-# softmax 구현시에  지수값이 크면 overflow 발생으로 nan이 나오는 것을 방지하기 위해 입력 값의 최대값을 빼주어 사용한다
+# In[36]:
+
+
+# # softmax 구현시에  지수값이 크면 오버플로발생으로 nan이 나오는 것을 방지하기 위해 입력 값의 촤대값을 빼주어 사용한다
 # a = np.array([1010,1000,990])
 # print(np.exp(a))    # [inf inf inf]  , 무한대 값, 오버플로우 발생
 # x = np.exp(a)/np.sum(np.exp(a))
@@ -240,22 +249,22 @@ class SoftmaxWithLoss:
 # print(x2)  # [9.99954600e-01 4.53978686e-05 2.06106005e-09]
 
 
-# ### Weight 갱신
+# ### 가중치 갱신
 
-# In[29]:
+# In[38]:
 
 
 # 확률적 경사하강법(Stochastic Gradient Descent)
-class SGD:
+class SGD :
     def __init__(self,lr=0.01):
         self.lr = lr
         
     def update(self,params,grads):
         for i in range(len(params)):
-            params[i] -= self.lr*grads[i]
+            params[i] -= self.lr*grads[i]    
 
 
-# In[30]:
+# In[ ]:
 
 
 class Adam:
