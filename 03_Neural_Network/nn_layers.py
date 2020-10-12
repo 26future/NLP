@@ -145,11 +145,30 @@ class Sigmoid:
         return dx        
 
 
+### ReLU 계층
+
+class ReLU:
+    def __init__(self):
+        self.params, self.grads = [],[]
+        self.mask = None
+        self.out = None
+        
+    def forward(self,x):
+        self.mask = (x <= 0) # x가 0 이하일 경우 0으로 변경
+        out = x.copy()
+        out[self.mask] = 0
+        return out
+    
+    def backward(self,dout):
+        dout[self.mask] = 0 # x가 0 이하일 경우 0으로 변경
+        dx = dout
+        return dx
+
+    
 # ### Affine 계층 : MatMul 노드에 bias를 더한 계층,  X*W + b
 
 # In[33]:
-
-
+    
 class Affine:
     def __init__(self,W,b):
         self.params = [W,b]
