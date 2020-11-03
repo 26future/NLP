@@ -584,3 +584,8 @@ class NegativeSamplingLoss:
             dscore = l0.backward(dout)   # SigmoidWithLoss 계층
             dh += l1.backward(dscore)   # EmbeddingDot 계층   
         return dh
+    
+    
+    
+    
+    
